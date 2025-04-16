@@ -35,7 +35,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // ROUTES
-app.post('/payment', async (req, res) => {
+app.post('/charge', async (req, res) => {
   try {
     const { walletNumber, amount, recipientCard, expiryDate, cvv } = req.body;
 
@@ -53,11 +53,9 @@ app.post('/payment', async (req, res) => {
       return res.status(400).json({ error: 'Insufficient funds' });
     }
 
-    // Format expiration date
     const [exp_month, exp_year_suffix] = expiryDate.split('/');
     const exp_year = `20${exp_year_suffix}`;
 
-    // Create token from raw card details
     const token = await stripe.tokens.create({
       card: {
         number: recipientCard,
@@ -67,7 +65,6 @@ app.post('/payment', async (req, res) => {
       }
     });
 
-    // Create a real charge using that token
     const charge = await stripe.charges.create({
       amount: Math.round(amount * 100),
       currency: 'usd',
@@ -75,10 +72,8 @@ app.post('/payment', async (req, res) => {
       description: `CV Exchange Live Payment from Wallet ${walletNumber}`
     });
 
-    // Subtract balance
     await walletRef.update({ balance: currentBalance - amount });
 
-    // Log transaction
     await db.collection('transactions').add({
       walletNumber,
       amount,

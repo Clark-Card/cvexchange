@@ -72,7 +72,7 @@
       try {
         const amountInCents = Math.round(parseFloat(amount) * 100);
 
-        const response = await fetch('/payment', {
+        const response = await fetch('/charge', {  <!-- Changed from /payment to /charge -->
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
